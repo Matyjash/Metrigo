@@ -1,0 +1,138 @@
+package metrigo
+
+import (
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/Matyjash/Metrigo/internal/metrics"
+)
+
+func Test_CpuMessage(t *testing.T) {
+	tests := []struct {
+		name               string
+		cpuInfo            []CpuInfo
+		wantReturnContains []string
+	}{
+		{
+			name: "formats CPU info correctly for one CPU",
+			cpuInfo: []CpuInfo{
+				{ID: "cpu0", UsagePercent: 15.5, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3200}},
+			},
+			wantReturnContains: []string{fmt.Sprintf(cpuMetricsMessage, "cpu0", "15.50", "3200")},
+		},
+		{
+			name: "formats CPU info correctly for multiple CPUs",
+			cpuInfo: []CpuInfo{
+				{ID: "cpu0", UsagePercent: 10.0, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3000}},
+				{ID: "cpu1", UsagePercent: 20.0, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3000}},
+			},
+			wantReturnContains: []string{
+				fmt.Sprintf(cpuMetricsMessage, "cpu0", "10.00", "3000"),
+				fmt.Sprintf(cpuMetricsMessage, "cpu1", "20.00", "3000"),
+			},
+		},
+		{
+			name: "handles missing CPU ID and frequency with NA",
+			cpuInfo: []CpuInfo{
+				{UsagePercent: 5.0},
+			},
+			wantReturnContains: []string{fmt.Sprintf(cpuMetricsMessage, "NA", "5.00", "NA")},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CpuMessage(tt.cpuInfo)
+			for _, substr := range tt.wantReturnContains {
+				if !strings.Contains(got, substr) {
+					t.Errorf("CpuMessage() = %v, want contains %v", got, substr)
+				}
+			}
+		})
+	}
+}
+
+func Test_TempMessage(t *testing.T) {
+	tests := []struct {
+		name               string
+		temps              []metrics.TemperatureSensor
+		wantReturnContains []string
+	}{
+		{
+			name: "formats temperature info correctly for one sensor",
+			temps: []metrics.TemperatureSensor{
+				{Key: "sensor1", Value: 45.5},
+			},
+			wantReturnContains: []string{fmt.Sprintf(tempMetricsMessage, "sensor1", "45.5")},
+		},
+		{
+			name: "formats temperature info correctly for multiple sensors",
+			temps: []metrics.TemperatureSensor{
+				{Key: "sensor1", Value: 40.0},
+				{Key: "sensor2", Value: 50.0},
+			},
+			wantReturnContains: []string{
+				fmt.Sprintf(tempMetricsMessage, "sensor1", "40"),
+				fmt.Sprintf(tempMetricsMessage, "sensor2", "50"),
+			},
+		},
+		{
+			name: "handles missing sensor key with NA",
+			temps: []metrics.TemperatureSensor{
+				{Value: 30.0},
+			},
+			wantReturnContains: []string{fmt.Sprintf(tempMetricsMessage, "NA", "30")},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := TempMessage(tt.temps)
+			for _, substr := range tt.wantReturnContains {
+				if !strings.Contains(got, substr) {
+					t.Errorf("TempMessage() = %v, want contains %v", got, substr)
+				}
+			}
+		})
+	}
+}
+
+func Test_MemoryUsageMessage(t *testing.T) {
+	tests := []struct {
+		name               string
+		memoryUsage        metrics.MemoryUsage
+		wantReturnContains string
+	}{
+		{
+			name: "formats memory usage correctly",
+			memoryUsage: metrics.MemoryUsage{
+				TotalB: 8000,
+				UsedB:  4000,
+			},
+			wantReturnContains: fmt.Sprintf(memMetricsMessage, "50.00", "4000", "8000"),
+		},
+		{
+			name: "handles zero total memory with NA",
+			memoryUsage: metrics.MemoryUsage{
+				TotalB: 0,
+				UsedB:  4000,
+			},
+			wantReturnContains: fmt.Sprintf(memMetricsMessage, "NA", "4000", "NA"),
+		},
+		{
+			name: "handles zero used memory",
+			memoryUsage: metrics.MemoryUsage{
+				TotalB: 8000,
+				UsedB:  0,
+			},
+			wantReturnContains: fmt.Sprintf(memMetricsMessage, "0.00", "0", "8000"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := MemoryUsageMessage(tt.memoryUsage)
+			if !strings.Contains(got, tt.wantReturnContains) {
+				t.Errorf("MemoryUsageMessage() = %v, want contains %v", got, tt.wantReturnContains)
+			}
+		})
+	}
+}
