@@ -6,8 +6,8 @@ import (
 	"net"
 	"os"
 
-	"github.com/Matyjash/Metrigo/cmd/server"
 	"github.com/Matyjash/Metrigo/internal/metrigo"
+	"github.com/Matyjash/Metrigo/internal/server"
 	"github.com/Matyjash/Metrigo/pb"
 	"google.golang.org/grpc"
 )
