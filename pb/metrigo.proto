@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package metrigo;
+
+option go_package = "github.com/Matyjash/Metrigoio/pb;pb";
+
+service Metrigo {
+    rpc GetMemoryUsage(MemoryUsageReq) returns (MemoryUsageRes);
+}
+
+message MemoryUsageReq {}
+message MemoryUsageRes {
+    uint64 totalB = 1;
+    uint64 usedB = 2;
+}

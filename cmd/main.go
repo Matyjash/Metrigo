@@ -3,10 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net"
 	"os"
 
+	"github.com/Matyjash/Metrigo/cmd/server"
 	"github.com/Matyjash/Metrigo/internal/metrigo"
+	"github.com/Matyjash/Metrigo/pb"
+	"google.golang.org/grpc"
 )
+
+const listenPort = ":50051"
 
 var version = "dev"
 
@@ -14,7 +20,18 @@ func main() {
 	fmt.Printf("Metrigo version: %s\n", version)
 	fmt.Println("Running in CLI mode")
 
+	serverMode := flag.Bool("server", false, "Run in server mode")
 	flag.Parse()
+
+	metrigo := metrigo.NewMetrigo()
+	if *serverMode {
+		if err := runGrpcServer(metrigo); err != nil {
+			fmt.Printf("Error starting server: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	args := flag.Args()
 	if len(args) == 0 {
 		fmt.Println("No command provided. Available commands: cpu, temp")
@@ -24,13 +41,26 @@ func main() {
 		fmt.Println("The count of provided arguments is more than one. Trying to proceed with the first one.")
 	}
 
-	metrigo := metrigo.NewMetrigo()
 	returnMessage, err := handleCommand(metrigo, args[0])
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 	fmt.Println(returnMessage)
+}
+
+func runGrpcServer(metrigo metrigo.Metrigo) error {
+	lis, err := net.Listen("tcp", listenPort)
+	if err != nil {
+		return fmt.Errorf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterMetrigoServer(s, server.NewServer(metrigo))
+	fmt.Printf("Server is running on port %s\n", listenPort)
+	if err := s.Serve(lis); err != nil {
+		return fmt.Errorf("failed to serve: %v", err)
+	}
+	return nil
 }
 
 func handleCommand(metrigoMetrics metrigo.Metrigo, command string) (string, error) {
