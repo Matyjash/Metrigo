@@ -26,14 +26,12 @@ func (m *Metrigo) GetCpuInfo() ([]models.CpuInfo, error) {
 		return nil, fmt.Errorf("failed to get CPU count info: %v", err)
 	}
 
-	cpus := make([]models.CpuInfo, logicalCpuCount)
-
 	usage, err := m.metricsPuller.GetCpuUsage(true, defaultMeasureInterval)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get CPU usage: %v", err)
 	}
 
-	info, err := m.metricsPuller.GetCpusSpec()
+	cpuSpec, err := m.metricsPuller.GetCpusSpec()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get CPUs frequencies: %v", err)
 	}
@@ -42,31 +40,12 @@ func (m *Metrigo) GetCpuInfo() ([]models.CpuInfo, error) {
 		return nil, fmt.Errorf("mismatched CPU count and usage length: %d, %d", logicalCpuCount, len(usage))
 	}
 
-	if len(info) == 1 {
-		for i := range logicalCpuCount {
-			cpus[i] = models.CpuInfo{
-				ID:           fmt.Sprintf("cpu%d", i),
-				UsagePercent: usage[i],
-				CpuSpec: models.CpuSpec{
-					FrequencyMhz: info[0].FrequencyMhz,
-				},
-			}
-		}
-	} else if len(info) == logicalCpuCount {
-		for i := range logicalCpuCount {
-			cpus[i] = models.CpuInfo{
-				ID:           fmt.Sprintf("cpu%d", i),
-				UsagePercent: usage[i],
-				CpuSpec: models.CpuSpec{
-					FrequencyMhz: info[i].FrequencyMhz,
-				},
-			}
-		}
-	} else {
-		return nil, fmt.Errorf("not implemented yet, CPU info length (%d) and logicalCpuCount (%d) missmatch", len(info), logicalCpuCount)
+	cpuInfo, err := m.buildCpuInfo(logicalCpuCount, cpuSpec, usage)
+	if err != nil {
+		return nil, fmt.Errorf("failed building cpu info object: %v", err)
 	}
 
-	return cpus, nil
+	return cpuInfo, nil
 }
 
 func (m *Metrigo) GetTemperatures() ([]models.TemperatureSensor, error) {
@@ -83,4 +62,34 @@ func (m *Metrigo) GetMemoryUsage() (models.MemoryUsage, error) {
 		return usage, fmt.Errorf("failed to get memory usage: %v", err)
 	}
 	return usage, nil
+}
+
+func (m *Metrigo) buildCpuInfo(logicalCpuCount int, cpuSpec []models.CpuSpec, usage []float64) ([]models.CpuInfo, error) {
+	cpus := make([]models.CpuInfo, logicalCpuCount)
+
+	if len(cpuSpec) == 1 {
+		for i := range logicalCpuCount {
+			cpus[i] = models.CpuInfo{
+				ID:           fmt.Sprintf("cpu%d", i),
+				UsagePercent: usage[i],
+				CpuSpec: models.CpuSpec{
+					FrequencyMhz: cpuSpec[0].FrequencyMhz,
+				},
+			}
+		}
+	} else if len(cpuSpec) == logicalCpuCount {
+		for i := range logicalCpuCount {
+			cpus[i] = models.CpuInfo{
+				ID:           fmt.Sprintf("cpu%d", i),
+				UsagePercent: usage[i],
+				CpuSpec: models.CpuSpec{
+					FrequencyMhz: cpuSpec[i].FrequencyMhz,
+				},
+			}
+		}
+	} else {
+		return nil, fmt.Errorf("not implemented yet, CPU info length (%d) and logicalCpuCount (%d) missmatch", len(cpuSpec), logicalCpuCount)
+	}
+
+	return cpus, nil
 }

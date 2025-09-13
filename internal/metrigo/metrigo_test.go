@@ -66,29 +66,8 @@ func Test_GetCpuInfo(t *testing.T) {
 		wantErrContains     string
 	}{
 		{
-			name:       "success with multiple cpus, single cpu spec",
+			name:       "successfully gets cpu info",
 			wantReturn: defaultExpectedCpuInfo,
-		},
-		{
-			name: "success with multiple cpus, multiple cpu specs",
-			cpusSpecFunc: func() ([]models.CpuSpec, error) {
-				return []models.CpuSpec{
-					{FrequencyMhz: 2500},
-					{FrequencyMhz: 3200}}, nil
-			},
-			wantReturn: []models.CpuInfo{
-				{ID: "cpu0", UsagePercent: 10.5, CpuSpec: models.CpuSpec{FrequencyMhz: 2500}},
-				{ID: "cpu1", UsagePercent: 20.5, CpuSpec: models.CpuSpec{FrequencyMhz: 3200}},
-			},
-		},
-		{
-			name:                "success 1 cpu",
-			logicalCpuCountFunc: func() (int, error) { return 1, nil },
-			cpuUsageFunc:        func(bool, time.Duration) ([]float64, error) { return []float64{99.9}, nil },
-			cpusSpecFunc:        func() ([]models.CpuSpec, error) { return []models.CpuSpec{{FrequencyMhz: 2500}}, nil },
-			wantReturn: []models.CpuInfo{
-				{ID: "cpu0", UsagePercent: 99.9, CpuSpec: models.CpuSpec{FrequencyMhz: 2500}},
-			},
 		},
 		{
 			name:                "logical cpu count error",
@@ -109,16 +88,6 @@ func Test_GetCpuInfo(t *testing.T) {
 			name:            "usage length mismatch logical cpu count",
 			cpuUsageFunc:    func(bool, time.Duration) ([]float64, error) { return []float64{10}, nil },
 			wantErrContains: "mismatched CPU count and usage length",
-		},
-		{
-			// Cpu count: 3, usage count:3, spec count:2
-			name:                "spec length not one and not matching logical cpu count",
-			logicalCpuCountFunc: func() (int, error) { return 3, nil },
-			cpuUsageFunc:        func(bool, time.Duration) ([]float64, error) { return []float64{99.9, 20.51, 47.01}, nil },
-			cpusSpecFunc: func() ([]models.CpuSpec, error) {
-				return []models.CpuSpec{{FrequencyMhz: 3200}, {FrequencyMhz: 3300}}, nil
-			},
-			wantErrContains: "not implemented yet",
 		},
 	}
 
@@ -159,6 +128,97 @@ func Test_GetCpuInfo(t *testing.T) {
 				t.Errorf("expected %v, got %v", tt.wantReturn, cpus)
 			}
 		})
+	}
+}
+
+func Test_buildCpuInfo(t *testing.T) {
+	type args struct {
+		logicalCpuCount int
+		cpuSpec         []models.CpuSpec
+		usage           []float64
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantReturn      []models.CpuInfo
+		wantErrContains string
+	}{
+		{
+			name: "success with multiple cpus, single cpu spec",
+			args: args{
+				logicalCpuCount: 2,
+				cpuSpec:         defaultCpuSpecs,
+				usage:           defaultCpuUsage,
+			},
+			wantReturn: defaultExpectedCpuInfo,
+		},
+		{
+			name: "success with multiple cpus, multiple cpu specs",
+			args: args{
+				logicalCpuCount: 2,
+				cpuSpec: []models.CpuSpec{
+					{FrequencyMhz: 2500},
+					{FrequencyMhz: 3200},
+				},
+				usage: defaultCpuUsage,
+			},
+			wantReturn: []models.CpuInfo{
+				{ID: "cpu0", UsagePercent: defaultCpuUsage[0], CpuSpec: models.CpuSpec{FrequencyMhz: 2500}},
+				{ID: "cpu1", UsagePercent: defaultCpuUsage[1], CpuSpec: models.CpuSpec{FrequencyMhz: 3200}},
+			},
+		},
+		{
+			name: "success with single cpu, single cpu spec",
+			args: args{
+				logicalCpuCount: 1,
+				cpuSpec:         defaultCpuSpecs,
+				usage:           []float64{10.5},
+			},
+			wantReturn: []models.CpuInfo{
+				{ID: "cpu0", UsagePercent: 10.5, CpuSpec: defaultCpuSpecs[0]},
+			},
+		},
+		{
+			// Cpu count: 3, usage count:3, spec count:2
+			name: "spec length not one and not matching logical cpu count",
+			args: args{
+				logicalCpuCount: 3,
+				cpuSpec: []models.CpuSpec{
+					{FrequencyMhz: 3200},
+					{FrequencyMhz: 3300},
+				},
+				usage: []float64{
+					99.9,
+					20.51,
+					47.01,
+				},
+			},
+			wantErrContains: "not implemented yet",
+		},
+	}
+
+	for _, tt := range tests {
+		m := Metrigo{}
+
+		cpuInfo, err := m.buildCpuInfo(
+			tt.args.logicalCpuCount,
+			tt.args.cpuSpec,
+			tt.args.usage,
+		)
+		if tt.wantErrContains != "" {
+			if err == nil || !strings.Contains(err.Error(), tt.wantErrContains) {
+				t.Errorf("expected error containing %q, got \"%v\"", tt.wantErrContains, err)
+			}
+			return
+		}
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if !reflect.DeepEqual(tt.wantReturn, cpuInfo) {
+			t.Errorf("expected %v, got %v", tt.wantReturn, cpuInfo)
+		}
+
 	}
 }
 
