@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Matyjash/Metrigo/internal/models"
 	cpu "github.com/shirou/gopsutil/v4/cpu"
 	mem "github.com/shirou/gopsutil/v4/mem"
 	sensors "github.com/shirou/gopsutil/v4/sensors"
@@ -13,24 +14,9 @@ type MetricsPuller interface {
 	GetCpuUsage(perCpu bool, interval time.Duration) ([]float64, error)
 	GetPhysicalCpuCount() (int, error)
 	GetLogicalCpuCount() (int, error)
-	GetCpusSpec() ([]CpuSpec, error)
-	GetVMMemoryUsage() (MemoryUsage, error)
-	GetTemperatures() ([]TemperatureSensor, error)
-}
-
-// TODO: move data structs out of here
-type CpuSpec struct {
-	FrequencyMhz float64
-}
-
-type TemperatureSensor struct {
-	Key   string
-	Value float64
-}
-
-type MemoryUsage struct {
-	UsedB  uint64
-	TotalB uint64
+	GetCpusSpec() ([]models.CpuSpec, error)
+	GetVMMemoryUsage() (models.MemoryUsage, error)
+	GetTemperatures() ([]models.TemperatureSensor, error)
 }
 
 type GopsutilPuller struct {
@@ -71,16 +57,16 @@ func (gp *GopsutilPuller) GetLogicalCpuCount() (int, error) {
 	return count, nil
 }
 
-func (gp *GopsutilPuller) GetCpusSpec() ([]CpuSpec, error) {
+func (gp *GopsutilPuller) GetCpusSpec() ([]models.CpuSpec, error) {
 	infoStats, err := cpu.Info()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get CPU stats: %v", err)
 	}
 
-	var cpusSpec []CpuSpec
+	var cpusSpec []models.CpuSpec
 
 	for _, cpuInfo := range infoStats {
-		cpusSpec = append(cpusSpec, CpuSpec{
+		cpusSpec = append(cpusSpec, models.CpuSpec{
 			FrequencyMhz: cpuInfo.Mhz,
 		})
 	}
@@ -88,18 +74,18 @@ func (gp *GopsutilPuller) GetCpusSpec() ([]CpuSpec, error) {
 	return cpusSpec, nil
 }
 
-func (gp *GopsutilPuller) GetTemperatures() ([]TemperatureSensor, error) {
+func (gp *GopsutilPuller) GetTemperatures() ([]models.TemperatureSensor, error) {
 	sensors, err := sensors.SensorsTemperatures()
 	if err != nil {
-		return []TemperatureSensor{}, fmt.Errorf("failed to get sensors temperatures: %v", err)
+		return []models.TemperatureSensor{}, fmt.Errorf("failed to get sensors temperatures: %v", err)
 	}
 	if len(sensors) == 0 {
-		return []TemperatureSensor{}, fmt.Errorf("no temperature sensors found")
+		return []models.TemperatureSensor{}, fmt.Errorf("no temperature sensors found")
 	}
 
-	temperatureSensors := make([]TemperatureSensor, len(sensors))
+	temperatureSensors := make([]models.TemperatureSensor, len(sensors))
 	for i, sensor := range sensors {
-		temperatureSensors[i] = TemperatureSensor{
+		temperatureSensors[i] = models.TemperatureSensor{
 			Key:   sensor.SensorKey,
 			Value: sensor.Temperature,
 		}
@@ -108,10 +94,10 @@ func (gp *GopsutilPuller) GetTemperatures() ([]TemperatureSensor, error) {
 	return temperatureSensors, nil
 }
 
-func (gp *GopsutilPuller) GetVMMemoryUsage() (MemoryUsage, error) {
+func (gp *GopsutilPuller) GetVMMemoryUsage() (models.MemoryUsage, error) {
 	vmStat, err := mem.VirtualMemory()
 	if err != nil {
-		return MemoryUsage{}, fmt.Errorf("failed to get virtual emory stats: %v", err)
+		return models.MemoryUsage{}, fmt.Errorf("failed to get virtual emory stats: %v", err)
 	}
-	return MemoryUsage{UsedB: vmStat.Used, TotalB: vmStat.Total}, nil
+	return models.MemoryUsage{UsedB: vmStat.Used, TotalB: vmStat.Total}, nil
 }

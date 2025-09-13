@@ -7,16 +7,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Matyjash/Metrigo/internal/metrics"
+	"github.com/Matyjash/Metrigo/internal/models"
 )
 
 type mockMetricsPuller struct {
 	getLogicalCpuCount  func() (int, error)
 	getPhysicalCpuCount func() (int, error)
 	getCpuUsage         func(bool, time.Duration) ([]float64, error)
-	getCpusSpec         func() ([]metrics.CpuSpec, error)
-	getVMMemoryUsage    func() (metrics.MemoryUsage, error)
-	getTemperatures     func() ([]metrics.TemperatureSensor, error)
+	getCpusSpec         func() ([]models.CpuSpec, error)
+	getVMMemoryUsage    func() (models.MemoryUsage, error)
+	getTemperatures     func() ([]models.TemperatureSensor, error)
 }
 
 func (m *mockMetricsPuller) GetLogicalCpuCount() (int, error) {
@@ -28,31 +28,31 @@ func (m *mockMetricsPuller) GetPhysicalCpuCount() (int, error) {
 func (m *mockMetricsPuller) GetCpuUsage(percpu bool, interval time.Duration) ([]float64, error) {
 	return m.getCpuUsage(percpu, interval)
 }
-func (m *mockMetricsPuller) GetCpusSpec() ([]metrics.CpuSpec, error) {
+func (m *mockMetricsPuller) GetCpusSpec() ([]models.CpuSpec, error) {
 	return m.getCpusSpec()
 }
-func (m *mockMetricsPuller) GetVMMemoryUsage() (metrics.MemoryUsage, error) {
+func (m *mockMetricsPuller) GetVMMemoryUsage() (models.MemoryUsage, error) {
 	return m.getVMMemoryUsage()
 }
-func (m *mockMetricsPuller) GetTemperatures() ([]metrics.TemperatureSensor, error) {
+func (m *mockMetricsPuller) GetTemperatures() ([]models.TemperatureSensor, error) {
 	return m.getTemperatures()
 }
 
 // Defaults
 var (
 	defaultCpuUsage = []float64{10.5, 20.5}
-	defaultCpuSpecs = []metrics.CpuSpec{
+	defaultCpuSpecs = []models.CpuSpec{
 		{FrequencyMhz: 3200},
 	}
 	defaultLogicalCpuCount = 2
 
 	defaultGetLogicalCpuCount = func() (int, error) { return defaultLogicalCpuCount, nil }
 	defaultGetCpuUsage        = func(percpu bool, interval time.Duration) ([]float64, error) { return defaultCpuUsage, nil }
-	defaultGetCpusSpecs       = func() ([]metrics.CpuSpec, error) { return defaultCpuSpecs, nil }
+	defaultGetCpusSpecs       = func() ([]models.CpuSpec, error) { return defaultCpuSpecs, nil }
 
-	defaultExpectedCpuInfo = []CpuInfo{
-		{ID: "cpu0", UsagePercent: 10.5, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3200}},
-		{ID: "cpu1", UsagePercent: 20.5, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3200}},
+	defaultExpectedCpuInfo = []models.CpuInfo{
+		{ID: "cpu0", UsagePercent: 10.5, CpuSpec: models.CpuSpec{FrequencyMhz: 3200}},
+		{ID: "cpu1", UsagePercent: 20.5, CpuSpec: models.CpuSpec{FrequencyMhz: 3200}},
 	}
 )
 
@@ -61,8 +61,8 @@ func Test_GetCpuInfo(t *testing.T) {
 		name                string
 		logicalCpuCountFunc func() (int, error)
 		cpuUsageFunc        func(bool, time.Duration) ([]float64, error)
-		cpusSpecFunc        func() ([]metrics.CpuSpec, error)
-		wantReturn          []CpuInfo
+		cpusSpecFunc        func() ([]models.CpuSpec, error)
+		wantReturn          []models.CpuInfo
 		wantErrContains     string
 	}{
 		{
@@ -71,23 +71,23 @@ func Test_GetCpuInfo(t *testing.T) {
 		},
 		{
 			name: "success with multiple cpus, multiple cpu specs",
-			cpusSpecFunc: func() ([]metrics.CpuSpec, error) {
-				return []metrics.CpuSpec{
+			cpusSpecFunc: func() ([]models.CpuSpec, error) {
+				return []models.CpuSpec{
 					{FrequencyMhz: 2500},
 					{FrequencyMhz: 3200}}, nil
 			},
-			wantReturn: []CpuInfo{
-				{ID: "cpu0", UsagePercent: 10.5, CpuSpec: metrics.CpuSpec{FrequencyMhz: 2500}},
-				{ID: "cpu1", UsagePercent: 20.5, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3200}},
+			wantReturn: []models.CpuInfo{
+				{ID: "cpu0", UsagePercent: 10.5, CpuSpec: models.CpuSpec{FrequencyMhz: 2500}},
+				{ID: "cpu1", UsagePercent: 20.5, CpuSpec: models.CpuSpec{FrequencyMhz: 3200}},
 			},
 		},
 		{
 			name:                "success 1 cpu",
 			logicalCpuCountFunc: func() (int, error) { return 1, nil },
 			cpuUsageFunc:        func(bool, time.Duration) ([]float64, error) { return []float64{99.9}, nil },
-			cpusSpecFunc:        func() ([]metrics.CpuSpec, error) { return []metrics.CpuSpec{{FrequencyMhz: 2500}}, nil },
-			wantReturn: []CpuInfo{
-				{ID: "cpu0", UsagePercent: 99.9, CpuSpec: metrics.CpuSpec{FrequencyMhz: 2500}},
+			cpusSpecFunc:        func() ([]models.CpuSpec, error) { return []models.CpuSpec{{FrequencyMhz: 2500}}, nil },
+			wantReturn: []models.CpuInfo{
+				{ID: "cpu0", UsagePercent: 99.9, CpuSpec: models.CpuSpec{FrequencyMhz: 2500}},
 			},
 		},
 		{
@@ -102,7 +102,7 @@ func Test_GetCpuInfo(t *testing.T) {
 		},
 		{
 			name:            "cpus info error",
-			cpusSpecFunc:    func() ([]metrics.CpuSpec, error) { return nil, fmt.Errorf("fail") },
+			cpusSpecFunc:    func() ([]models.CpuSpec, error) { return nil, fmt.Errorf("fail") },
 			wantErrContains: "failed to get CPUs frequencies",
 		},
 		{
@@ -115,8 +115,8 @@ func Test_GetCpuInfo(t *testing.T) {
 			name:                "spec length not one and not matching logical cpu count",
 			logicalCpuCountFunc: func() (int, error) { return 3, nil },
 			cpuUsageFunc:        func(bool, time.Duration) ([]float64, error) { return []float64{99.9, 20.51, 47.01}, nil },
-			cpusSpecFunc: func() ([]metrics.CpuSpec, error) {
-				return []metrics.CpuSpec{{FrequencyMhz: 3200}, {FrequencyMhz: 3300}}, nil
+			cpusSpecFunc: func() ([]models.CpuSpec, error) {
+				return []models.CpuSpec{{FrequencyMhz: 3200}, {FrequencyMhz: 3300}}, nil
 			},
 			wantErrContains: "not implemented yet",
 		},
@@ -165,26 +165,26 @@ func Test_GetCpuInfo(t *testing.T) {
 func Test_getTemperatures(t *testing.T) {
 	tests := []struct {
 		name            string
-		getTemperatures func() ([]metrics.TemperatureSensor, error)
-		wantReturn      []metrics.TemperatureSensor
+		getTemperatures func() ([]models.TemperatureSensor, error)
+		wantReturn      []models.TemperatureSensor
 		wantErrContains string
 	}{
 		{
 			name: "successfully gets temperatures sensors",
-			getTemperatures: func() ([]metrics.TemperatureSensor, error) {
-				return []metrics.TemperatureSensor{
+			getTemperatures: func() ([]models.TemperatureSensor, error) {
+				return []models.TemperatureSensor{
 					{Key: "sensor1", Value: 45.0},
 					{Key: "sensor2", Value: 50.0},
 				}, nil
 			},
-			wantReturn: []metrics.TemperatureSensor{
+			wantReturn: []models.TemperatureSensor{
 				{Key: "sensor1", Value: 45.0},
 				{Key: "sensor2", Value: 50.0},
 			},
 		},
 		{
 			name: "returns error when getting temperatures fails",
-			getTemperatures: func() ([]metrics.TemperatureSensor, error) {
+			getTemperatures: func() ([]models.TemperatureSensor, error) {
 				return nil, fmt.Errorf("failed to get temperatures")
 			},
 			wantErrContains: "failed to get temperatures",
@@ -222,21 +222,21 @@ func Test_getTemperatures(t *testing.T) {
 func Test_GetMemoryUsage(t *testing.T) {
 	tests := []struct {
 		name             string
-		getVMMemoryUsage func() (metrics.MemoryUsage, error)
-		wantReturn       metrics.MemoryUsage
+		getVMMemoryUsage func() (models.MemoryUsage, error)
+		wantReturn       models.MemoryUsage
 		wantErrContains  string
 	}{
 		{
 			name: "successfully gets memory usage",
-			getVMMemoryUsage: func() (metrics.MemoryUsage, error) {
-				return metrics.MemoryUsage{UsedB: 1024, TotalB: 2048}, nil
+			getVMMemoryUsage: func() (models.MemoryUsage, error) {
+				return models.MemoryUsage{UsedB: 1024, TotalB: 2048}, nil
 			},
-			wantReturn: metrics.MemoryUsage{UsedB: 1024, TotalB: 2048},
+			wantReturn: models.MemoryUsage{UsedB: 1024, TotalB: 2048},
 		},
 		{
 			name: "returns error when getting memory usage fails",
-			getVMMemoryUsage: func() (metrics.MemoryUsage, error) {
-				return metrics.MemoryUsage{}, fmt.Errorf("failed to get memory usage")
+			getVMMemoryUsage: func() (models.MemoryUsage, error) {
+				return models.MemoryUsage{}, fmt.Errorf("failed to get memory usage")
 			},
 			wantErrContains: "failed to get memory usage",
 		},

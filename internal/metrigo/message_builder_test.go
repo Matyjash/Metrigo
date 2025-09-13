@@ -5,27 +5,27 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Matyjash/Metrigo/internal/metrics"
+	"github.com/Matyjash/Metrigo/internal/models"
 )
 
 func Test_CpuMessage(t *testing.T) {
 	tests := []struct {
 		name               string
-		cpuInfo            []CpuInfo
+		cpuInfo            []models.CpuInfo
 		wantReturnContains []string
 	}{
 		{
 			name: "formats CPU info correctly for one CPU",
-			cpuInfo: []CpuInfo{
-				{ID: "cpu0", UsagePercent: 15.5, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3200}},
+			cpuInfo: []models.CpuInfo{
+				{ID: "cpu0", UsagePercent: 15.5, CpuSpec: models.CpuSpec{FrequencyMhz: 3200}},
 			},
 			wantReturnContains: []string{fmt.Sprintf(cpuMetricsMessage, "cpu0", "15.50", "3200")},
 		},
 		{
 			name: "formats CPU info correctly for multiple CPUs",
-			cpuInfo: []CpuInfo{
-				{ID: "cpu0", UsagePercent: 10.0, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3000}},
-				{ID: "cpu1", UsagePercent: 20.0, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3000}},
+			cpuInfo: []models.CpuInfo{
+				{ID: "cpu0", UsagePercent: 10.0, CpuSpec: models.CpuSpec{FrequencyMhz: 3000}},
+				{ID: "cpu1", UsagePercent: 20.0, CpuSpec: models.CpuSpec{FrequencyMhz: 3000}},
 			},
 			wantReturnContains: []string{
 				fmt.Sprintf(cpuMetricsMessage, "cpu0", "10.00", "3000"),
@@ -34,7 +34,7 @@ func Test_CpuMessage(t *testing.T) {
 		},
 		{
 			name: "handles missing CPU ID and frequency with NA",
-			cpuInfo: []CpuInfo{
+			cpuInfo: []models.CpuInfo{
 				{UsagePercent: 5.0},
 			},
 			wantReturnContains: []string{fmt.Sprintf(cpuMetricsMessage, "NA", "5.00", "NA")},
@@ -55,19 +55,19 @@ func Test_CpuMessage(t *testing.T) {
 func Test_TempMessage(t *testing.T) {
 	tests := []struct {
 		name               string
-		temps              []metrics.TemperatureSensor
+		temps              []models.TemperatureSensor
 		wantReturnContains []string
 	}{
 		{
 			name: "formats temperature info correctly for one sensor",
-			temps: []metrics.TemperatureSensor{
+			temps: []models.TemperatureSensor{
 				{Key: "sensor1", Value: 45.5},
 			},
 			wantReturnContains: []string{fmt.Sprintf(tempMetricsMessage, "sensor1", "45.5")},
 		},
 		{
 			name: "formats temperature info correctly for multiple sensors",
-			temps: []metrics.TemperatureSensor{
+			temps: []models.TemperatureSensor{
 				{Key: "sensor1", Value: 40.0},
 				{Key: "sensor2", Value: 50.0},
 			},
@@ -78,7 +78,7 @@ func Test_TempMessage(t *testing.T) {
 		},
 		{
 			name: "handles missing sensor key with NA",
-			temps: []metrics.TemperatureSensor{
+			temps: []models.TemperatureSensor{
 				{Value: 30.0},
 			},
 			wantReturnContains: []string{fmt.Sprintf(tempMetricsMessage, "NA", "30")},
@@ -99,12 +99,12 @@ func Test_TempMessage(t *testing.T) {
 func Test_MemoryUsageMessage(t *testing.T) {
 	tests := []struct {
 		name               string
-		memoryUsage        metrics.MemoryUsage
+		memoryUsage        models.MemoryUsage
 		wantReturnContains string
 	}{
 		{
 			name: "formats memory usage correctly",
-			memoryUsage: metrics.MemoryUsage{
+			memoryUsage: models.MemoryUsage{
 				TotalB: 8000,
 				UsedB:  4000,
 			},
@@ -112,7 +112,7 @@ func Test_MemoryUsageMessage(t *testing.T) {
 		},
 		{
 			name: "handles zero total memory with NA",
-			memoryUsage: metrics.MemoryUsage{
+			memoryUsage: models.MemoryUsage{
 				TotalB: 0,
 				UsedB:  4000,
 			},
@@ -120,7 +120,7 @@ func Test_MemoryUsageMessage(t *testing.T) {
 		},
 		{
 			name: "handles zero used memory",
-			memoryUsage: metrics.MemoryUsage{
+			memoryUsage: models.MemoryUsage{
 				TotalB: 8000,
 				UsedB:  0,
 			},

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/Matyjash/Metrigo/internal/metrics"
+	"github.com/Matyjash/Metrigo/internal/models"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 	memMetricsMessage = "Usage %s%%, Used: %s B, Total: %s B"
 )
 
-func CpuMessage(cpuInfo []CpuInfo) string {
+func CpuMessage(cpuInfo []models.CpuInfo) string {
 	var message string = cpuMessageHeader
 	for i, cpu := range cpuInfo {
 		cpuID := cpu.ID
@@ -41,7 +41,7 @@ func CpuMessage(cpuInfo []CpuInfo) string {
 	return message
 }
 
-func TempMessage(temps []metrics.TemperatureSensor) string {
+func TempMessage(temps []models.TemperatureSensor) string {
 	var message string = tempMessageHeader
 	for i, temp := range temps {
 		sensorKey := temp.Key
@@ -57,7 +57,7 @@ func TempMessage(temps []metrics.TemperatureSensor) string {
 	return message
 }
 
-func MemoryUsageMessage(memoryUsage metrics.MemoryUsage) string {
+func MemoryUsageMessage(memoryUsage models.MemoryUsage) string {
 	var message string = memMessageHeader
 	used := strconv.FormatUint(memoryUsage.UsedB, 10)
 

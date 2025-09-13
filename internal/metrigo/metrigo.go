@@ -5,16 +5,10 @@ import (
 	"time"
 
 	"github.com/Matyjash/Metrigo/internal/metrics"
+	"github.com/Matyjash/Metrigo/internal/models"
 )
 
 const defaultMeasureInterval = 200 * time.Millisecond
-
-// TODO: move data structs out of here
-type CpuInfo struct {
-	ID           string
-	UsagePercent float64
-	metrics.CpuSpec
-}
 
 type Metrigo struct {
 	metricsPuller metrics.MetricsPuller
@@ -26,13 +20,13 @@ func NewMetrigo() Metrigo {
 	}
 }
 
-func (m *Metrigo) GetCpuInfo() ([]CpuInfo, error) {
+func (m *Metrigo) GetCpuInfo() ([]models.CpuInfo, error) {
 	logicalCpuCount, err := m.metricsPuller.GetLogicalCpuCount()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get CPU count info: %v", err)
 	}
 
-	cpus := make([]CpuInfo, logicalCpuCount)
+	cpus := make([]models.CpuInfo, logicalCpuCount)
 
 	usage, err := m.metricsPuller.GetCpuUsage(true, defaultMeasureInterval)
 	if err != nil {
@@ -50,20 +44,20 @@ func (m *Metrigo) GetCpuInfo() ([]CpuInfo, error) {
 
 	if len(info) == 1 {
 		for i := range logicalCpuCount {
-			cpus[i] = CpuInfo{
+			cpus[i] = models.CpuInfo{
 				ID:           fmt.Sprintf("cpu%d", i),
 				UsagePercent: usage[i],
-				CpuSpec: metrics.CpuSpec{
+				CpuSpec: models.CpuSpec{
 					FrequencyMhz: info[0].FrequencyMhz,
 				},
 			}
 		}
 	} else if len(info) == logicalCpuCount {
 		for i := range logicalCpuCount {
-			cpus[i] = CpuInfo{
+			cpus[i] = models.CpuInfo{
 				ID:           fmt.Sprintf("cpu%d", i),
 				UsagePercent: usage[i],
-				CpuSpec: metrics.CpuSpec{
+				CpuSpec: models.CpuSpec{
 					FrequencyMhz: info[i].FrequencyMhz,
 				},
 			}
@@ -75,7 +69,7 @@ func (m *Metrigo) GetCpuInfo() ([]CpuInfo, error) {
 	return cpus, nil
 }
 
-func (m *Metrigo) GetTemperatures() ([]metrics.TemperatureSensor, error) {
+func (m *Metrigo) GetTemperatures() ([]models.TemperatureSensor, error) {
 	temps, err := m.metricsPuller.GetTemperatures()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get temperatures: %v", err)
@@ -83,7 +77,7 @@ func (m *Metrigo) GetTemperatures() ([]metrics.TemperatureSensor, error) {
 	return temps, nil
 }
 
-func (m *Metrigo) GetMemoryUsage() (metrics.MemoryUsage, error) {
+func (m *Metrigo) GetMemoryUsage() (models.MemoryUsage, error) {
 	usage, err := m.metricsPuller.GetVMMemoryUsage()
 	if err != nil {
 		return usage, fmt.Errorf("failed to get memory usage: %v", err)
