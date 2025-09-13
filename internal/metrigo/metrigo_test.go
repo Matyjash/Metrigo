@@ -66,8 +66,29 @@ func Test_GetCpuInfo(t *testing.T) {
 		wantErrContains     string
 	}{
 		{
-			name:       "success with two cpus",
+			name:       "success with multiple cpus, single cpu spec",
 			wantReturn: defaultExpectedCpuInfo,
+		},
+		{
+			name: "success with multiple cpus, multiple cpu specs",
+			cpusSpecFunc: func() ([]metrics.CpuSpec, error) {
+				return []metrics.CpuSpec{
+					{FrequencyMhz: 2500},
+					{FrequencyMhz: 3200}}, nil
+			},
+			wantReturn: []CpuInfo{
+				{ID: "cpu0", UsagePercent: 10.5, CpuSpec: metrics.CpuSpec{FrequencyMhz: 2500}},
+				{ID: "cpu1", UsagePercent: 20.5, CpuSpec: metrics.CpuSpec{FrequencyMhz: 3200}},
+			},
+		},
+		{
+			name:                "success 1 cpu",
+			logicalCpuCountFunc: func() (int, error) { return 1, nil },
+			cpuUsageFunc:        func(bool, time.Duration) ([]float64, error) { return []float64{99.9}, nil },
+			cpusSpecFunc:        func() ([]metrics.CpuSpec, error) { return []metrics.CpuSpec{{FrequencyMhz: 2500}}, nil },
+			wantReturn: []CpuInfo{
+				{ID: "cpu0", UsagePercent: 99.9, CpuSpec: metrics.CpuSpec{FrequencyMhz: 2500}},
+			},
 		},
 		{
 			name:                "logical cpu count error",
@@ -90,20 +111,14 @@ func Test_GetCpuInfo(t *testing.T) {
 			wantErrContains: "mismatched CPU count and usage length",
 		},
 		{
-			name: "info length not one",
+			// Cpu count: 3, usage count:3, spec count:2
+			name:                "spec length not one and not matching logical cpu count",
+			logicalCpuCountFunc: func() (int, error) { return 3, nil },
+			cpuUsageFunc:        func(bool, time.Duration) ([]float64, error) { return []float64{99.9, 20.51, 47.01}, nil },
 			cpusSpecFunc: func() ([]metrics.CpuSpec, error) {
 				return []metrics.CpuSpec{{FrequencyMhz: 3200}, {FrequencyMhz: 3300}}, nil
 			},
 			wantErrContains: "not implemented yet",
-		},
-		{
-			name:                "success 1 cpu",
-			logicalCpuCountFunc: func() (int, error) { return 1, nil },
-			cpuUsageFunc:        func(bool, time.Duration) ([]float64, error) { return []float64{99.9}, nil },
-			cpusSpecFunc:        func() ([]metrics.CpuSpec, error) { return []metrics.CpuSpec{{FrequencyMhz: 2500}}, nil },
-			wantReturn: []CpuInfo{
-				{ID: "cpu0", UsagePercent: 99.9, CpuSpec: metrics.CpuSpec{FrequencyMhz: 2500}},
-			},
 		},
 	}
 

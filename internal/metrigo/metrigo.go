@@ -58,8 +58,18 @@ func (m *Metrigo) GetCpuInfo() ([]CpuInfo, error) {
 				},
 			}
 		}
+	} else if len(info) == logicalCpuCount {
+		for i := range logicalCpuCount {
+			cpus[i] = CpuInfo{
+				ID:           fmt.Sprintf("cpu%d", i),
+				UsagePercent: usage[i],
+				CpuSpec: metrics.CpuSpec{
+					FrequencyMhz: info[i].FrequencyMhz,
+				},
+			}
+		}
 	} else {
-		return nil, fmt.Errorf("not implemented yet, expected one CPU info entry, got %d", len(info))
+		return nil, fmt.Errorf("not implemented yet, CPU info length (%d) and logicalCpuCount (%d) missmatch", len(info), logicalCpuCount)
 	}
 
 	return cpus, nil
