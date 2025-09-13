@@ -162,7 +162,7 @@ func Test_GetCpuInfo(t *testing.T) {
 	}
 }
 
-func Test_getTemperatures(t *testing.T) {
+func Test_GetTemperatures(t *testing.T) {
 	tests := []struct {
 		name            string
 		getTemperatures func() ([]models.TemperatureSensor, error)
