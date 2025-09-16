@@ -6,10 +6,21 @@ option go_package = "github.com/Matyjash/Metrigoio/pb;pb";
 
 service Metrigo {
     rpc GetMemoryUsage(MemoryUsageReq) returns (MemoryUsageRes);
+    rpc GetCpuInfo(CpuInfoReq) returns (CpuInfoRes);
 }
 
 message MemoryUsageReq {}
 message MemoryUsageRes {
     uint64 totalB = 1;
     uint64 usedB = 2;
+}
+
+message CpuInfoReq {}
+message CpuInfo {
+    string id =1;
+    float usagePercent = 2;
+    float frequency = 3;
+}
+message CpuInfoRes {
+    repeated CpuInfo cpuInfo =1;
 }
