@@ -7,6 +7,7 @@ option go_package = "github.com/Matyjash/Metrigoio/pb;pb";
 service Metrigo {
     rpc GetMemoryUsage(MemoryUsageReq) returns (MemoryUsageRes);
     rpc GetCpuInfo(CpuInfoReq) returns (CpuInfoRes);
+    rpc GetTemperatures(TemperatureReq) returns (TemperatureRes);
 }
 
 message MemoryUsageReq {}
@@ -23,4 +24,13 @@ message CpuInfo {
 }
 message CpuInfoRes {
     repeated CpuInfo cpuInfo =1;
+}
+
+message TemperatureReq {}
+message TemperatureSensor {
+    string key = 1;
+    float value = 2;
+}
+message TemperatureRes {
+    repeated TemperatureSensor sensors = 1;
 }
