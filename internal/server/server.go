@@ -47,3 +47,21 @@ func (s *Server) GetCpuInfo(ctx context.Context, req *pb.CpuInfoReq) (*pb.CpuInf
 
 	return &pb.CpuInfoRes{CpuInfo: cpuInfosRes}, nil
 }
+
+func (s *Server) GetTemperatures(ctx context.Context, req *pb.TemperatureReq) (*pb.TemperatureRes, error) {
+	temperatures, err := s.metrigo.GetTemperatures()
+	if err != nil {
+		return nil, err
+	}
+
+	var temperaturesRes []*pb.TemperatureSensor
+	for _, temperature := range temperatures {
+		temperatureSensorPb := &pb.TemperatureSensor{
+			Key:   temperature.Key,
+			Value: float32(temperature.Value),
+		}
+		temperaturesRes = append(temperaturesRes, temperatureSensorPb)
+	}
+
+	return &pb.TemperatureRes{Sensors: temperaturesRes}, nil
+}
