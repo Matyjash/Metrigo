@@ -32,7 +32,7 @@ func NewGopsutilPuller() *GopsutilPuller {
 func (gp *GopsutilPuller) GetCpuUsage(perCpu bool, interval time.Duration) ([]float64, error) {
 	usagePercent, err := cpu.Percent(interval, perCpu)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get CPU usage: %v", err)
+		return nil, err
 	}
 	return usagePercent, nil
 }
@@ -40,7 +40,7 @@ func (gp *GopsutilPuller) GetCpuUsage(perCpu bool, interval time.Duration) ([]fl
 func (gp *GopsutilPuller) GetPhysicalCpuCount() (int, error) {
 	count, err := cpu.Counts(false)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get physical CPU count: %v", err)
+		return 0, err
 	}
 	if count < 1 {
 		return 0, fmt.Errorf("no CPUs found")
@@ -51,7 +51,7 @@ func (gp *GopsutilPuller) GetPhysicalCpuCount() (int, error) {
 func (gp *GopsutilPuller) GetLogicalCpuCount() (int, error) {
 	count, err := cpu.Counts(true)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get logical CPU count: %v", err)
+		return 0, err
 	}
 	if count < 1 {
 		return 0, fmt.Errorf("no CPUs found")
@@ -62,7 +62,7 @@ func (gp *GopsutilPuller) GetLogicalCpuCount() (int, error) {
 func (gp *GopsutilPuller) GetCpusSpec() ([]models.CpuSpec, error) {
 	infoStats, err := cpu.Info()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get CPU stats: %v", err)
+		return nil, err
 	}
 
 	var cpusSpec []models.CpuSpec
@@ -79,7 +79,7 @@ func (gp *GopsutilPuller) GetCpusSpec() ([]models.CpuSpec, error) {
 func (gp *GopsutilPuller) GetTemperatures() ([]models.TemperatureSensor, error) {
 	sensors, err := sensors.SensorsTemperatures()
 	if err != nil {
-		return []models.TemperatureSensor{}, fmt.Errorf("failed to get sensors temperatures: %v", err)
+		return []models.TemperatureSensor{}, err
 	}
 	if len(sensors) == 0 {
 		return []models.TemperatureSensor{}, fmt.Errorf("no temperature sensors found")
@@ -99,7 +99,7 @@ func (gp *GopsutilPuller) GetTemperatures() ([]models.TemperatureSensor, error) 
 func (gp *GopsutilPuller) GetVMMemoryUsage() (models.MemoryUsage, error) {
 	vmStat, err := mem.VirtualMemory()
 	if err != nil {
-		return models.MemoryUsage{}, fmt.Errorf("failed to get virtual emory stats: %v", err)
+		return models.MemoryUsage{}, err
 	}
 	return models.MemoryUsage{UsedB: vmStat.Used, TotalB: vmStat.Total}, nil
 }
@@ -107,7 +107,7 @@ func (gp *GopsutilPuller) GetVMMemoryUsage() (models.MemoryUsage, error) {
 func (gp *GopsutilPuller) GetHostInfo() (models.HostInfo, error) {
 	info, err := host.Info()
 	if err != nil {
-		return models.HostInfo{}, fmt.Errorf("failed to get host info %v: ", err)
+		return models.HostInfo{}, err
 	}
 	return models.HostInfo{
 		Hostname:        info.Hostname,
