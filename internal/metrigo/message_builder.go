@@ -26,7 +26,7 @@ const (
 )
 
 func CpuMessage(cpuInfo []models.CpuInfo) string {
-	var message string = cpuMessageHeader
+	message := cpuMessageHeader
 	for i, cpu := range cpuInfo {
 		cpuID := cpu.ID
 		if cpuID == "" {
@@ -35,7 +35,7 @@ func CpuMessage(cpuInfo []models.CpuInfo) string {
 
 		usagePercent := strconv.FormatFloat(cpu.UsagePercent, 'f', 2, 64)
 
-		var frequency string = "NA"
+		frequency := "NA"
 		if cpu.FrequencyMhz != 0 {
 			frequency = strconv.FormatFloat(cpu.FrequencyMhz, 'f', -1, 64)
 		}
@@ -49,7 +49,7 @@ func CpuMessage(cpuInfo []models.CpuInfo) string {
 }
 
 func TempMessage(temps []models.TemperatureSensor) string {
-	var message string = tempMessageHeader
+	message := tempMessageHeader
 	for i, temp := range temps {
 		sensorKey := temp.Key
 		if sensorKey == "" {
@@ -65,7 +65,7 @@ func TempMessage(temps []models.TemperatureSensor) string {
 }
 
 func MemoryUsageMessage(memoryUsage models.MemoryUsage) string {
-	var message string = memMessageHeader
+	message := memMessageHeader
 	used := strconv.FormatUint(memoryUsage.UsedB, 10)
 
 	total := "NA"
@@ -73,7 +73,7 @@ func MemoryUsageMessage(memoryUsage models.MemoryUsage) string {
 		total = strconv.FormatUint(memoryUsage.TotalB, 10)
 	}
 
-	var usagePercent string = "NA"
+	usagePercent := "NA"
 	if memoryUsage.TotalB != 0 {
 		usagePercent = strconv.FormatFloat((float64(memoryUsage.UsedB)/float64(memoryUsage.TotalB))*100, 'f', 2, 64)
 	}
