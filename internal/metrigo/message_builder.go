@@ -16,6 +16,13 @@ const (
 
 	memMessageHeader  = "Memory metrics:\n"
 	memMetricsMessage = "Usage %s%%, Used: %s B, Total: %s B"
+
+	hostMessageHeader             = "Host info:\n"
+	hostMessageHostNameRow        = "Hostname: %s"
+	hostMessageOSRow              = "OS: %s"
+	hostMessagePlatformRow        = "Platform: %s"
+	hostMessagePlatformVersionRow = "Platform version: %s"
+	hostMessageUptimeRow          = "Uptime (s): %s"
 )
 
 func CpuMessage(cpuInfo []models.CpuInfo) string {
@@ -72,5 +79,41 @@ func MemoryUsageMessage(memoryUsage models.MemoryUsage) string {
 	}
 
 	message += fmt.Sprintf(memMetricsMessage, usagePercent, used, total)
+	return message
+}
+
+func HostInfoMessage(hostInfo models.HostInfo) string {
+	message := hostMessageHeader
+
+	hostname := "NA"
+	if hostInfo.Hostname != "" {
+		hostname = hostInfo.Hostname
+	}
+	message += fmt.Sprintf(hostMessageHostNameRow, hostname) + "\n"
+
+	os := "NA"
+	if hostInfo.OS != "" {
+		os = hostInfo.OS
+	}
+	message += fmt.Sprintf(hostMessageOSRow, os) + "\n"
+
+	platform := "NA"
+	if hostInfo.Platform != "" {
+		platform = hostInfo.Platform
+	}
+	message += fmt.Sprintf(hostMessagePlatformRow, platform) + "\n"
+
+	platformVersion := "NA"
+	if hostInfo.PlatformVersion != "" {
+		platformVersion = hostInfo.PlatformVersion
+	}
+	message += fmt.Sprintf(hostMessagePlatformVersionRow, platformVersion) + "\n"
+
+	uptime := "NA"
+	if hostInfo.Uptime != 0 {
+		uptime = strconv.FormatUint(hostInfo.Uptime, 10)
+	}
+	message += fmt.Sprintf(hostMessageUptimeRow, uptime)
+
 	return message
 }

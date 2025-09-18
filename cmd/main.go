@@ -83,6 +83,12 @@ func handleCommand(metrigoMetrics metrigo.Metrigo, command string) (string, erro
 			return "", err
 		}
 		return metrigo.MemoryUsageMessage(memoryUsage), nil
+	case "host":
+		hostInfo, err := metrigoMetrics.GetHostInfo()
+		if err != nil {
+			return "", err
+		}
+		return metrigo.HostInfoMessage(hostInfo), nil
 	default:
 		return "", fmt.Errorf("unknown command: %s. Available commands: cpu, temp, mem", command)
 	}

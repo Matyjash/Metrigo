@@ -64,6 +64,14 @@ func (m *Metrigo) GetMemoryUsage() (models.MemoryUsage, error) {
 	return usage, nil
 }
 
+func (m *Metrigo) GetHostInfo() (models.HostInfo, error) {
+	hostInfo, err := m.metricsPuller.GetHostInfo()
+	if err != nil {
+		return hostInfo, fmt.Errorf("failed to get host info: %v", err)
+	}
+	return hostInfo, err
+}
+
 func (m *Metrigo) buildCpuInfo(logicalCpuCount int, cpuSpec []models.CpuSpec, usage []float64) ([]models.CpuInfo, error) {
 	if len(cpuSpec) != 1 && len(cpuSpec) != logicalCpuCount {
 		return nil, fmt.Errorf("not implemented yet, CPU info length (%d) and logicalCpuCount (%d) missmatch", len(cpuSpec), logicalCpuCount)

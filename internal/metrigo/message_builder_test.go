@@ -2,6 +2,7 @@ package metrigo
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -132,6 +133,113 @@ func Test_MemoryUsageMessage(t *testing.T) {
 			got := MemoryUsageMessage(tt.memoryUsage)
 			if !strings.Contains(got, tt.wantReturnContains) {
 				t.Errorf("MemoryUsageMessage() = %v, want contains %v", got, tt.wantReturnContains)
+			}
+		})
+	}
+}
+
+func Test_HostInfoMessage(t *testing.T) {
+	tests := []struct {
+		name               string
+		hostInfo           models.HostInfo
+		wantReturnContains string
+	}{
+		{
+			name: "returns proper host info message",
+			hostInfo: models.HostInfo{
+				Hostname:        "test",
+				OS:              "linux",
+				Platform:        "ubuntu",
+				PlatformVersion: "Ubuntu 24.04.3 LTS",
+				Uptime:          10,
+			},
+			wantReturnContains: fmt.Sprintf(hostMessageHostNameRow, "test") + "\n" +
+				fmt.Sprintf(hostMessageOSRow, "linux") + "\n" +
+				fmt.Sprintf(hostMessagePlatformRow, "ubuntu") + "\n" +
+				fmt.Sprintf(hostMessagePlatformVersionRow, "Ubuntu 24.04.3 LTS") + "\n" +
+				fmt.Sprintf(hostMessageUptimeRow, strconv.FormatUint(10, 10)),
+		},
+		{
+			name: "replace empty hostname with NA",
+			hostInfo: models.HostInfo{
+				Hostname:        "",
+				OS:              "linux",
+				Platform:        "ubuntu",
+				PlatformVersion: "Ubuntu 24.04.3 LTS",
+				Uptime:          10,
+			},
+			wantReturnContains: fmt.Sprintf(hostMessageHostNameRow, "NA") + "\n" +
+				fmt.Sprintf(hostMessageOSRow, "linux") + "\n" +
+				fmt.Sprintf(hostMessagePlatformRow, "ubuntu") + "\n" +
+				fmt.Sprintf(hostMessagePlatformVersionRow, "Ubuntu 24.04.3 LTS") + "\n" +
+				fmt.Sprintf(hostMessageUptimeRow, strconv.FormatUint(10, 10)),
+		},
+		{
+			name: "replace empty os with NA",
+			hostInfo: models.HostInfo{
+				Hostname:        "test",
+				OS:              "",
+				Platform:        "ubuntu",
+				PlatformVersion: "Ubuntu 24.04.3 LTS",
+				Uptime:          10,
+			},
+			wantReturnContains: fmt.Sprintf(hostMessageHostNameRow, "test") + "\n" +
+				fmt.Sprintf(hostMessageOSRow, "NA") + "\n" +
+				fmt.Sprintf(hostMessagePlatformRow, "ubuntu") + "\n" +
+				fmt.Sprintf(hostMessagePlatformVersionRow, "Ubuntu 24.04.3 LTS") + "\n" +
+				fmt.Sprintf(hostMessageUptimeRow, strconv.FormatUint(10, 10)),
+		},
+		{
+			name: "replace empty platform with NA",
+			hostInfo: models.HostInfo{
+				Hostname:        "test",
+				OS:              "linux",
+				Platform:        "",
+				PlatformVersion: "Ubuntu 24.04.3 LTS",
+				Uptime:          10,
+			},
+			wantReturnContains: fmt.Sprintf(hostMessageHostNameRow, "test") + "\n" +
+				fmt.Sprintf(hostMessageOSRow, "linux") + "\n" +
+				fmt.Sprintf(hostMessagePlatformRow, "NA") + "\n" +
+				fmt.Sprintf(hostMessagePlatformVersionRow, "Ubuntu 24.04.3 LTS") + "\n" +
+				fmt.Sprintf(hostMessageUptimeRow, strconv.FormatUint(10, 10)),
+		},
+		{
+			name: "replace empty platform version with NA",
+			hostInfo: models.HostInfo{
+				Hostname:        "test",
+				OS:              "linux",
+				Platform:        "ubuntu",
+				PlatformVersion: "",
+				Uptime:          10,
+			},
+			wantReturnContains: fmt.Sprintf(hostMessageHostNameRow, "test") + "\n" +
+				fmt.Sprintf(hostMessageOSRow, "linux") + "\n" +
+				fmt.Sprintf(hostMessagePlatformRow, "ubuntu") + "\n" +
+				fmt.Sprintf(hostMessagePlatformVersionRow, "NA") + "\n" +
+				fmt.Sprintf(hostMessageUptimeRow, strconv.FormatUint(10, 10)),
+		},
+		{
+			name: "replace zero uptime with NA",
+			hostInfo: models.HostInfo{
+				Hostname:        "test",
+				OS:              "linux",
+				Platform:        "ubuntu",
+				PlatformVersion: "Ubuntu 24.04.3 LTS",
+				Uptime:          0,
+			},
+			wantReturnContains: fmt.Sprintf(hostMessageHostNameRow, "test") + "\n" +
+				fmt.Sprintf(hostMessageOSRow, "linux") + "\n" +
+				fmt.Sprintf(hostMessagePlatformRow, "ubuntu") + "\n" +
+				fmt.Sprintf(hostMessagePlatformVersionRow, "Ubuntu 24.04.3 LTS") + "\n" +
+				fmt.Sprintf(hostMessageUptimeRow, "NA"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := HostInfoMessage(tt.hostInfo)
+			if !strings.Contains(got, tt.wantReturnContains) {
+				t.Errorf("HostInfoMessage() = %v, want contains %v", got, tt.wantReturnContains)
 			}
 		})
 	}

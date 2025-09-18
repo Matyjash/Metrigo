@@ -19,3 +19,11 @@ type MemoryUsage struct {
 	UsedB  uint64
 	TotalB uint64
 }
+
+type HostInfo struct {
+	Hostname        string
+	OS              string
+	Platform        string
+	PlatformVersion string
+	Uptime          uint64
+}

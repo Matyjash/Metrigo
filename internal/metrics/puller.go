@@ -6,6 +6,7 @@ import (
 
 	"github.com/Matyjash/Metrigo/internal/models"
 	cpu "github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/host"
 	mem "github.com/shirou/gopsutil/v4/mem"
 	sensors "github.com/shirou/gopsutil/v4/sensors"
 )
@@ -17,6 +18,7 @@ type MetricsPuller interface {
 	GetCpusSpec() ([]models.CpuSpec, error)
 	GetVMMemoryUsage() (models.MemoryUsage, error)
 	GetTemperatures() ([]models.TemperatureSensor, error)
+	GetHostInfo() (models.HostInfo, error)
 }
 
 type GopsutilPuller struct {
@@ -100,4 +102,19 @@ func (gp *GopsutilPuller) GetVMMemoryUsage() (models.MemoryUsage, error) {
 		return models.MemoryUsage{}, fmt.Errorf("failed to get virtual emory stats: %v", err)
 	}
 	return models.MemoryUsage{UsedB: vmStat.Used, TotalB: vmStat.Total}, nil
+}
+
+func (gp *GopsutilPuller) GetHostInfo() (models.HostInfo, error) {
+	info, err := host.Info()
+	if err != nil {
+		return models.HostInfo{}, fmt.Errorf("failed to get host info %v: ", err)
+	}
+	return models.HostInfo{
+		Hostname:        info.Hostname,
+		OS:              info.OS,
+		Platform:        info.Platform,
+		PlatformVersion: info.PlatformVersion,
+		Uptime:          info.Uptime,
+	}, nil
+
 }

@@ -17,6 +17,7 @@ type mockMetricsPuller struct {
 	getCpusSpec         func() ([]models.CpuSpec, error)
 	getVMMemoryUsage    func() (models.MemoryUsage, error)
 	getTemperatures     func() ([]models.TemperatureSensor, error)
+	getHostInfo         func() (models.HostInfo, error)
 }
 
 func (m *mockMetricsPuller) GetLogicalCpuCount() (int, error) {
@@ -37,6 +38,9 @@ func (m *mockMetricsPuller) GetVMMemoryUsage() (models.MemoryUsage, error) {
 func (m *mockMetricsPuller) GetTemperatures() ([]models.TemperatureSensor, error) {
 	return m.getTemperatures()
 }
+func (m *mockMetricsPuller) GetHostInfo() (models.HostInfo, error) {
+	return m.getHostInfo()
+}
 
 // Defaults
 var (
@@ -53,6 +57,14 @@ var (
 	defaultExpectedCpuInfo = []models.CpuInfo{
 		{ID: "cpu0", UsagePercent: 10.5, CpuSpec: models.CpuSpec{FrequencyMhz: 3200}},
 		{ID: "cpu1", UsagePercent: 20.5, CpuSpec: models.CpuSpec{FrequencyMhz: 3200}},
+	}
+
+	defaultHostInfo = models.HostInfo{
+		Hostname:        "test",
+		OS:              "linux",
+		Platform:        "ubuntu",
+		PlatformVersion: "Ubuntu 24.04.3 LTS",
+		Uptime:          120,
 	}
 )
 
@@ -309,6 +321,53 @@ func Test_GetMemoryUsage(t *testing.T) {
 			m := Metrigo{}
 			m.metricsPuller = mock
 			usage, err := m.GetMemoryUsage()
+			if tt.wantErrContains != "" {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErrContains) {
+					t.Errorf("expected error containing %q, got \"%v\"", tt.wantErrContains, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !reflect.DeepEqual(tt.wantReturn, usage) {
+				t.Errorf("expected %v, got %v", tt.wantReturn, usage)
+			}
+		})
+	}
+}
+
+func Test_GetHostInfo(t *testing.T) {
+	tests := []struct {
+		name            string
+		getHostInfo     func() (models.HostInfo, error)
+		wantReturn      models.HostInfo
+		wantErrContains string
+	}{
+		{
+			name: "successfully gets host info",
+			getHostInfo: func() (models.HostInfo, error) {
+				return defaultHostInfo, nil
+			},
+			wantReturn: defaultHostInfo,
+		},
+		{
+			name: "returns error when getting host info fails",
+			getHostInfo: func() (models.HostInfo, error) {
+				return models.HostInfo{}, fmt.Errorf("failed to get host info")
+			},
+			wantReturn:      models.HostInfo{},
+			wantErrContains: "failed to get host info",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockMetricsPuller{
+				getHostInfo: tt.getHostInfo,
+			}
+			m := Metrigo{}
+			m.metricsPuller = mock
+			usage, err := m.GetHostInfo()
 			if tt.wantErrContains != "" {
 				if err == nil || !strings.Contains(err.Error(), tt.wantErrContains) {
 					t.Errorf("expected error containing %q, got \"%v\"", tt.wantErrContains, err)
