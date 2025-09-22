@@ -8,6 +8,7 @@ service Metrigo {
     rpc GetMemoryUsage(MemoryUsageReq) returns (MemoryUsageRes);
     rpc GetCpuInfo(CpuInfoReq) returns (CpuInfoRes);
     rpc GetTemperatures(TemperatureReq) returns (TemperatureRes);
+    rpc GetHostInfo(HostInfoReq) returns (HostInfoRes);
 }
 
 message MemoryUsageReq {}
@@ -33,4 +34,13 @@ message TemperatureSensor {
 }
 message TemperatureRes {
     repeated TemperatureSensor sensors = 1;
+}
+
+message HostInfoReq {}
+message HostInfoRes {
+    string hostname = 1;
+    string os = 2;
+    string platform = 3;
+    string platformVersion = 4;
+    uint64 uptime = 5;
 }

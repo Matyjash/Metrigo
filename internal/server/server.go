@@ -65,3 +65,18 @@ func (s *Server) GetTemperatures(ctx context.Context, req *pb.TemperatureReq) (*
 
 	return &pb.TemperatureRes{Sensors: temperaturesRes}, nil
 }
+
+func (s *Server) GetHostInfo(ctx context.Context, req *pb.HostInfoReq) (*pb.HostInfoRes, error) {
+	hostInfo, err := s.metrigo.GetHostInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.HostInfoRes{
+		Hostname:        hostInfo.Hostname,
+		Os:              hostInfo.OS,
+		Platform:        hostInfo.Platform,
+		PlatformVersion: hostInfo.PlatformVersion,
+		Uptime:          hostInfo.Uptime,
+	}, nil
+}
