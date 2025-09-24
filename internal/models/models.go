@@ -27,3 +27,10 @@ type HostInfo struct {
 	PlatformVersion string
 	Uptime          uint64
 }
+
+type NetInterface struct {
+	Name       string
+	Index      int
+	Addressess []string
+	MTU        int
+}

@@ -117,3 +117,5 @@ func HostInfoMessage(hostInfo models.HostInfo) string {
 
 	return message
 }
+
+//TODO: add message builder for net interfaces

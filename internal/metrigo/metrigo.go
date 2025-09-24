@@ -92,3 +92,12 @@ func (m *Metrigo) buildCpuInfo(logicalCpuCount int, cpuSpec []models.CpuSpec, us
 
 	return cpus, nil
 }
+
+func (m *Metrigo) GetNetInterfaces() ([]models.NetInterface, error) {
+	//TODO: explore and potentially add here more net metrics and refactor the method
+	netInterfaces, err := m.metricsPuller.GetNetInterfaces()
+	if err != nil {
+		return netInterfaces, fmt.Errorf("failed to get net interfaces: %v", err)
+	}
+	return netInterfaces, err
+}

@@ -8,6 +8,7 @@ import (
 	cpu "github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/host"
 	mem "github.com/shirou/gopsutil/v4/mem"
+	net "github.com/shirou/gopsutil/v4/net"
 	sensors "github.com/shirou/gopsutil/v4/sensors"
 )
 
@@ -19,10 +20,10 @@ type MetricsPuller interface {
 	GetVMMemoryUsage() (models.MemoryUsage, error)
 	GetTemperatures() ([]models.TemperatureSensor, error)
 	GetHostInfo() (models.HostInfo, error)
+	GetNetInterfaces() ([]models.NetInterface, error)
 }
 
 type GopsutilPuller struct {
-	// TODO: add logger
 }
 
 func NewGopsutilPuller() *GopsutilPuller {
@@ -117,4 +118,27 @@ func (gp *GopsutilPuller) GetHostInfo() (models.HostInfo, error) {
 		Uptime:          info.Uptime,
 	}, nil
 
+}
+
+func (gp *GopsutilPuller) GetNetInterfaces() ([]models.NetInterface, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	netInterfaces := make([]models.NetInterface, len(interfaces))
+	for i, iface := range interfaces {
+		addresses := make([]string, len(iface.Addrs))
+		for i, addrs := range iface.Addrs {
+			addresses[i] = addrs.Addr
+		}
+
+		netInterfaces[i] = models.NetInterface{
+			Name:       iface.Name,
+			Index:      iface.Index,
+			Addressess: addresses,
+			MTU:        iface.MTU,
+		}
+	}
+	return netInterfaces, nil
 }

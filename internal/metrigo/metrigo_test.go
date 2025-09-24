@@ -18,6 +18,7 @@ type mockMetricsPuller struct {
 	getVMMemoryUsage    func() (models.MemoryUsage, error)
 	getTemperatures     func() ([]models.TemperatureSensor, error)
 	getHostInfo         func() (models.HostInfo, error)
+	getNetInterfaces    func() ([]models.NetInterface, error)
 }
 
 func (m *mockMetricsPuller) GetLogicalCpuCount() (int, error) {
@@ -40,6 +41,9 @@ func (m *mockMetricsPuller) GetTemperatures() ([]models.TemperatureSensor, error
 }
 func (m *mockMetricsPuller) GetHostInfo() (models.HostInfo, error) {
 	return m.getHostInfo()
+}
+func (m *mockMetricsPuller) GetNetInterfaces() ([]models.NetInterface, error) {
+	return m.getNetInterfaces()
 }
 
 // Defaults
@@ -65,6 +69,11 @@ var (
 		Platform:        "ubuntu",
 		PlatformVersion: "Ubuntu 24.04.3 LTS",
 		Uptime:          120,
+	}
+
+	defaultNetInterfaces = []models.NetInterface{
+		{Name: "eth2", Index: 2, Addressess: []string{"192.168.1.10/24", "fe80::a00:27ff:fe4e:66a1/64"}, MTU: 1500},
+		{Name: "lo", Index: 1, Addressess: []string{"127.0.0.1/8", "::1/128"}, MTU: 65536},
 	}
 )
 
@@ -379,6 +388,53 @@ func Test_GetHostInfo(t *testing.T) {
 			}
 			if !reflect.DeepEqual(tt.wantReturn, usage) {
 				t.Errorf("expected %v, got %v", tt.wantReturn, usage)
+			}
+		})
+	}
+}
+
+func Test_GetNetInterfaces(t *testing.T) {
+	tests := []struct {
+		name             string
+		getNetInterfaces func() ([]models.NetInterface, error)
+		wantReturn       []models.NetInterface
+		wantErrContains  string
+	}{
+		{
+			name: "successfully gets net interfaces",
+			getNetInterfaces: func() ([]models.NetInterface, error) {
+				return defaultNetInterfaces, nil
+			},
+			wantReturn: defaultNetInterfaces,
+		},
+		{
+			name: "returns error when getting net interfaces fails",
+			getNetInterfaces: func() ([]models.NetInterface, error) {
+				return nil, fmt.Errorf("unexpected error")
+			},
+			wantReturn:      nil,
+			wantErrContains: "failed to get net interfaces",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockMetricsPuller{
+				getNetInterfaces: tt.getNetInterfaces,
+			}
+			m := Metrigo{}
+			m.metricsPuller = mock
+			ifaces, err := m.GetNetInterfaces()
+			if tt.wantErrContains != "" {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErrContains) {
+					t.Errorf("expected error containing %q, got \"%v\"", tt.wantErrContains, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !reflect.DeepEqual(tt.wantReturn, ifaces) {
+				t.Errorf("expected %v, got %v", tt.wantReturn, ifaces)
 			}
 		})
 	}
