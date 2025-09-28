@@ -89,6 +89,12 @@ func handleCommand(metrigoMetrics metrigo.Metrigo, command string) (string, erro
 			return "", err
 		}
 		return metrigo.HostInfoMessage(hostInfo), nil
+	case "net":
+		netInterfaces, err := metrigoMetrics.GetNetInterfaces()
+		if err != nil {
+			return "", err
+		}
+		return metrigo.NetInterfacesMessage(netInterfaces), nil
 	default:
 		return "", fmt.Errorf("unknown command: %s. Available commands: cpu, temp, mem", command)
 	}
