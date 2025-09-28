@@ -18,7 +18,6 @@ var version = "dev"
 
 func main() {
 	fmt.Printf("Metrigo version: %s\n", version)
-	fmt.Println("Running in CLI mode")
 
 	serverMode := flag.Bool("server", false, "Run in server mode")
 	flag.Parse()
@@ -31,6 +30,8 @@ func main() {
 		}
 		return
 	}
+
+	fmt.Println("Running in CLI mode")
 
 	args := flag.Args()
 	if len(args) == 0 {
