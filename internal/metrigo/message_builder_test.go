@@ -244,3 +244,80 @@ func Test_HostInfoMessage(t *testing.T) {
 		})
 	}
 }
+
+func Test_NetInterfacesMessage(t *testing.T) {
+	tests := []struct {
+		name               string
+		netInferfaces      []models.NetInterface
+		wantReturnContains string
+	}{
+		{
+			name: "returns proper net interfaces message",
+			netInferfaces: []models.NetInterface{
+				{Name: "iface1", Index: 1, Addressess: []string{"ipv4", "ipv6"}, MTU: 128},
+				{Name: "iface2", Index: 3, Addressess: []string{"ipv4_2", "ipv6_2"}, MTU: 64},
+			},
+			wantReturnContains: netInterfacesMessageHeader +
+				fmt.Sprintf(netInterfacesNameRow, "iface1") + "\n" +
+				fmt.Sprintf(netInterfacesIndexRow, 1) + "\n" +
+				netInterfacesAdressessHeader +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv4") + "\n" +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv6") + "\n" +
+				fmt.Sprintf(netInterfacesMTURow, strconv.Itoa(128)) + "\n" +
+				"\n" +
+				fmt.Sprintf(netInterfacesNameRow, "iface2") + "\n" +
+				fmt.Sprintf(netInterfacesIndexRow, 3) + "\n" +
+				netInterfacesAdressessHeader +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv4_2") + "\n" +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv6_2") + "\n" +
+				fmt.Sprintf(netInterfacesMTURow, strconv.Itoa(64)) + "\n",
+		},
+		{
+			name: "replaces empty name with NA",
+			netInferfaces: []models.NetInterface{
+				{Name: "", Index: 1, Addressess: []string{"ipv4", "ipv6"}, MTU: 128},
+			},
+			wantReturnContains: netInterfacesMessageHeader +
+				fmt.Sprintf(netInterfacesNameRow, "NA") + "\n" +
+				fmt.Sprintf(netInterfacesIndexRow, 1) + "\n" +
+				netInterfacesAdressessHeader +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv4") + "\n" +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv6") + "\n" +
+				fmt.Sprintf(netInterfacesMTURow, strconv.Itoa(128)) + "\n",
+		},
+		{
+			name: "replaces empty address with NA",
+			netInferfaces: []models.NetInterface{
+				{Name: "iface1", Index: 1, Addressess: []string{"", "ipv6"}, MTU: 128},
+			},
+			wantReturnContains: netInterfacesMessageHeader +
+				fmt.Sprintf(netInterfacesNameRow, "iface1") + "\n" +
+				fmt.Sprintf(netInterfacesIndexRow, 1) + "\n" +
+				netInterfacesAdressessHeader +
+				fmt.Sprintf(netInterfacesAdressRow, "NA") + "\n" +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv6") + "\n" +
+				fmt.Sprintf(netInterfacesMTURow, strconv.Itoa(128)) + "\n",
+		},
+		{
+			name: "replaces zero MTU with NA",
+			netInferfaces: []models.NetInterface{
+				{Name: "iface1", Index: 1, Addressess: []string{"ipv4", "ipv6"}, MTU: 0},
+			},
+			wantReturnContains: netInterfacesMessageHeader +
+				fmt.Sprintf(netInterfacesNameRow, "iface1") + "\n" +
+				fmt.Sprintf(netInterfacesIndexRow, 1) + "\n" +
+				netInterfacesAdressessHeader +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv4") + "\n" +
+				fmt.Sprintf(netInterfacesAdressRow, "ipv6") + "\n" +
+				fmt.Sprintf(netInterfacesMTURow, "NA") + "\n",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NetInterfacesMessage(tt.netInferfaces)
+			if !strings.Contains(got, tt.wantReturnContains) {
+				t.Errorf("NetInterfacesMessage() = %v, want contains %v", got, tt.wantReturnContains)
+			}
+		})
+	}
+}

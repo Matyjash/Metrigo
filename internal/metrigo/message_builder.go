@@ -23,6 +23,13 @@ const (
 	hostMessagePlatformRow        = "Platform: %s"
 	hostMessagePlatformVersionRow = "Platform version: %s"
 	hostMessageUptimeRow          = "Uptime (s): %s"
+
+	netInterfacesMessageHeader   = "Net Interfaces:\n"
+	netInterfacesNameRow         = "Name: %s"
+	netInterfacesIndexRow        = "Index: %d"
+	netInterfacesAdressessHeader = "Adressess: \n"
+	netInterfacesAdressRow       = "IP: %s"
+	netInterfacesMTURow          = "MTU: %s"
 )
 
 func CpuMessage(cpuInfo []models.CpuInfo) string {
@@ -118,4 +125,39 @@ func HostInfoMessage(hostInfo models.HostInfo) string {
 	return message
 }
 
-//TODO: add message builder for net interfaces
+func NetInterfacesMessage(netInferfaces []models.NetInterface) string {
+	message := netInterfacesMessageHeader
+
+	for i, iface := range netInferfaces {
+		name := "NA"
+		if iface.Name != "" {
+			name = iface.Name
+		}
+		message += fmt.Sprintf(netInterfacesNameRow, name) + "\n"
+
+		index := iface.Index
+		message += fmt.Sprintf(netInterfacesIndexRow, index) + "\n"
+
+		message += netInterfacesAdressessHeader
+
+		for _, address := range iface.Addressess {
+			adr := "NA"
+			if address != "" {
+				adr = address
+			}
+			message += fmt.Sprintf(netInterfacesAdressRow, adr) + "\n"
+		}
+
+		mtu := "NA"
+		if iface.MTU != 0 {
+			mtu = strconv.Itoa(iface.MTU)
+		}
+		message += fmt.Sprintf(netInterfacesMTURow, mtu) + "\n"
+
+		if i != len(netInferfaces)-1 {
+			message += "\n"
+		}
+	}
+
+	return message
+}
