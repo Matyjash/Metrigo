@@ -35,14 +35,13 @@ func (s *Server) GetCpuInfo(ctx context.Context, req *pb.CpuInfoReq) (*pb.CpuInf
 		return nil, err
 	}
 
-	var cpuInfosRes []*pb.CpuInfo
-	for _, info := range cpuInfo {
-		cpuInfoPb := &pb.CpuInfo{
+	cpuInfosRes := make([]*pb.CpuInfo, len(cpuInfo))
+	for i, info := range cpuInfo {
+		cpuInfosRes[i] = &pb.CpuInfo{
 			Id:           info.ID,
 			UsagePercent: float32(info.UsagePercent),
 			Frequency:    float32(info.FrequencyMhz),
 		}
-		cpuInfosRes = append(cpuInfosRes, cpuInfoPb)
 	}
 
 	return &pb.CpuInfoRes{CpuInfo: cpuInfosRes}, nil
@@ -54,13 +53,12 @@ func (s *Server) GetTemperatures(ctx context.Context, req *pb.TemperatureReq) (*
 		return nil, err
 	}
 
-	var temperaturesRes []*pb.TemperatureSensor
-	for _, temperature := range temperatures {
-		temperatureSensorPb := &pb.TemperatureSensor{
+	temperaturesRes := make([]*pb.TemperatureSensor, len(temperatures))
+	for i, temperature := range temperatures {
+		temperaturesRes[i] = &pb.TemperatureSensor{
 			Key:   temperature.Key,
 			Value: float32(temperature.Value),
 		}
-		temperaturesRes = append(temperaturesRes, temperatureSensorPb)
 	}
 
 	return &pb.TemperatureRes{Sensors: temperaturesRes}, nil
