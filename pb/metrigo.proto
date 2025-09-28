@@ -9,6 +9,7 @@ service Metrigo {
     rpc GetCpuInfo(CpuInfoReq) returns (CpuInfoRes);
     rpc GetTemperatures(TemperatureReq) returns (TemperatureRes);
     rpc GetHostInfo(HostInfoReq) returns (HostInfoRes);
+    rpc GetNetInfo(NetInfoReq) returns (NetInfoRes);
 }
 
 message MemoryUsageReq {}
@@ -43,4 +44,15 @@ message HostInfoRes {
     string platform = 3;
     string platformVersion = 4;
     uint64 uptime = 5;
+}
+
+message NetInfoReq {}
+message NetInterface {
+    string name = 1;
+    uint32 index = 2;
+    repeated string addresses = 3;
+    uint64 MTU = 4;
+}
+message NetInfoRes {
+    repeated NetInterface interfaces = 1;
 }
