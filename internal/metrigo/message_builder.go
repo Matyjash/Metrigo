@@ -26,10 +26,10 @@ const (
 
 	netInterfacesMessageHeader   = "Net Interfaces:\n"
 	netInterfacesNameRow         = "Name: %s"
-	netInterfacesIndexRow        = "Index: %d"
-	netInterfacesAdressessHeader = "Adressess: \n"
-	netInterfacesAdressRow       = "IP: %s"
-	netInterfacesMTURow          = "MTU: %s"
+	netInterfacesIndexRow        = "\tIndex: %d"
+	netInterfacesAdressessHeader = "\tAdressess: \n"
+	netInterfacesAdressRow       = "\tIP: %s"
+	netInterfacesMTURow          = "\tMTU: %s"
 )
 
 func CpuMessage(cpuInfo []models.CpuInfo) string {
