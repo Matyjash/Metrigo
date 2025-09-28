@@ -20,6 +20,7 @@ func main() {
 	fmt.Printf("Metrigo version: %s\n", version)
 
 	serverMode := flag.Bool("server", false, "Run in server mode")
+	help := flag.Bool("help", false, "Show help")
 	flag.Parse()
 
 	metrigo := metrigo.NewMetrigo()
@@ -29,6 +30,10 @@ func main() {
 			os.Exit(1)
 		}
 		return
+	}
+
+	if *help {
+		printHelp()
 	}
 
 	fmt.Println("Running in CLI mode")
@@ -99,4 +104,17 @@ func handleCommand(metrigoMetrics metrigo.Metrigo, command string) (string, erro
 	default:
 		return "", fmt.Errorf("unknown command: %s. Available commands: cpu, temp, mem", command)
 	}
+}
+
+func printHelp() {
+	fmt.Println("Usage: metrigo [--server] [command]")
+	fmt.Println("Flags:")
+	flag.PrintDefaults()
+	fmt.Println("\nAvailable commands:")
+	fmt.Println("  cpu   Show CPU metrics")
+	fmt.Println("  temp  Show temperature sensors")
+	fmt.Println("  mem   Show memory usage")
+	fmt.Println("  host  Show host info")
+	fmt.Println("  net   Show network interfaces")
+	os.Exit(0)
 }
