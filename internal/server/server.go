@@ -80,3 +80,24 @@ func (s *Server) GetHostInfo(ctx context.Context, req *pb.HostInfoReq) (*pb.Host
 		Uptime:          hostInfo.Uptime,
 	}, nil
 }
+
+func (s *Server) GetNetInfo(ctx context.Context, req *pb.NetInfoReq) (*pb.NetInfoRes, error) {
+	netInterfaces, err := s.metrigo.GetNetInterfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	netInterfacesPb := make([]*pb.NetInterface, len(netInterfaces))
+	for i, iface := range netInterfaces {
+		netInterfacesPb[i] = &pb.NetInterface{
+			Name:      iface.Name,
+			Index:     uint32(iface.Index),
+			Addresses: iface.Addressess,
+			MTU:       uint64(iface.MTU),
+		}
+	}
+
+	return &pb.NetInfoRes{
+		Interfaces: netInterfacesPb,
+	}, nil
+}
