@@ -18,10 +18,29 @@ jobs:
         with:
           go-version: '1.21'
 
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: Install protoc Go plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          export PATH="$PATH:$(go env GOPATH)/bin"
+
+      - name: Generate protobuf files
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          protoc \
+            --go_out=paths=source_relative:. \
+            --go-grpc_out=paths=source_relative:. \
+            pb/metrigo.proto
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
-          version: latest
+          version: '~> v2'
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
